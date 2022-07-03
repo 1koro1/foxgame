@@ -41,3 +41,24 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: background
+    uniqueID: 3387639357
+    locked: 0
+  - name: underground
+    uniqueID: 3408487823
+    locked: 0
+  - name: ground
+    uniqueID: 2728797477
+    locked: 0
+  - name: player
+    uniqueID: 472316619
+    locked: 0
+  - name: fontground
+    uniqueID: 953263781
+    locked: 0
+  - name: enemy
+    uniqueID: 62862643
+    locked: 0
+  - name: collection
+    uniqueID: 2887675995
+    locked: 0

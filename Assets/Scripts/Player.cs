@@ -72,11 +72,17 @@ public class Player : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         //当碰撞对象为敌人单位时
-        if (collision.gameObject.tag == "enemy") {
+        if (collision.gameObject.tag == "Enemy") {
             //第一种下落时消灭对象
-            if (!onGround && !animator.GetBool("isJump")) {
+            if (!onGround && !animator.GetBool("isJump"))
+            {
 
                 Destroy(collision.gameObject);
+            }
+            else {
+                //不处于下落状态，则出发受伤动画
+                animator.SetTrigger("Hit"); 
+            
             }
         }
     }

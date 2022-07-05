@@ -6,7 +6,7 @@ public class Player : MonoBehaviour
 {
     //Horizontal
     public float moveSpeed = 10f;//移动速度
-    public Vector2 direction; //方向
+    public Vector2 direction; 
     private bool facingRight = true;//是否面朝右
 
     //Vertical 
@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
     public Rigidbody2D rb;
     public Animator animator;
     public LayerMask groundLayer;//指向图层
+    public BoxCollider2D box;//盒装碰撞体
 
     //Physics
     public float maxSpeed = 7f;
@@ -27,6 +28,7 @@ public class Player : MonoBehaviour
 
     //Collision
     public bool onGround = false; //是否在地面上
+    public bool onTop = false; //是否头顶有地板碰撞
     public float groundLength = 0.6f;//地板指针长度 
     public Vector3 colliderOffset;//画线的参数
 
@@ -43,6 +45,10 @@ public class Player : MonoBehaviour
         onGround = Physics2D.Raycast(transform.position + colliderOffset,Vector2.down,groundLength,groundLayer) || Physics2D.Raycast(transform.position - colliderOffset, Vector2.down, groundLength, groundLayer);//线性投射
         //是否在地面上
         animator.SetBool("isGround",onGround);
+
+        onTop = Physics2D.OverlapCircle(transform.position , 0.2f ,groundLayer);
+        animator.SetBool("isTop",onTop);
+        
         if (Input.GetButtonDown("Jump")) {
             jumpTimer = Time.time + jumpDelay;
         }
@@ -53,6 +59,7 @@ public class Player : MonoBehaviour
     private void FixedUpdate()
     {
         moveCharacter(direction.x);
+        crouch(direction.y);
 
         if (jumpTimer > Time.time && onGround) {
             Jump();
@@ -60,6 +67,30 @@ public class Player : MonoBehaviour
         //调用阻力
         modifyPhysics();
         
+    }
+    //碰撞函数
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        //当碰撞对象为敌人单位时
+        if (collision.gameObject.tag == "enemy") {
+            //第一种下落时消灭对象
+            if (!onGround && !animator.GetBool("isJump")) {
+
+                Destroy(collision.gameObject);
+            }
+        }
+    }
+
+    //下蹲函数
+    void crouch(float vertical) {
+        //进行下蹲操作
+        if (vertical < 0) {
+            animator.SetBool("crouch", true);
+            box.enabled = false;
+        } else if (!onTop) {
+            box.enabled = true;
+            animator.SetBool("crouch", false);
+        }
     }
     //移动函数
     void moveCharacter(float horizontal) {
@@ -122,5 +153,9 @@ public class Player : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawLine(transform.position + colliderOffset,transform.position + colliderOffset + Vector3.down * groundLength);
         Gizmos.DrawLine(transform.position - colliderOffset,transform.position - colliderOffset + Vector3.down * groundLength);
+
+        //绘制一个头顶的线
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(transform.position, transform.position + Vector3.up * 0.2f);
     }
 }

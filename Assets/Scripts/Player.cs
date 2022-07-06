@@ -73,11 +73,15 @@ public class Player : MonoBehaviour
     {
         //当碰撞对象为敌人单位时
         if (collision.gameObject.tag == "Enemy") {
+            //实例化frog的类
+            Enemy enemy = collision.gameObject.GetComponent<Enemy>();
             //第一种下落时消灭对象
             if (!onGround && !animator.GetBool("isJump"))
             {
-
-                Destroy(collision.gameObject);
+                enemy.jumpOn();
+                //触发2段跳
+                rb.velocity = new Vector2(rb.velocity.x, 0);
+                rb.AddForce(Vector2.up * jumpSpeed * 0.6f, ForceMode2D.Impulse); 
             }
             else {
                 //不处于下落状态，则出发受伤动画

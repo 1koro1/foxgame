@@ -101,20 +101,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82e829f204b9dcf48b2e5936e6cafd56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 10
+  moveSpeed: 8
   direction: {x: 0, y: 0}
-  jumpSpeed: 15
+  jumpSpeed: 10
   jumpDelay: 0.25
   rb: {fileID: 134173785}
   animator: {fileID: 134173779}
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
-  maxSpeed: 7
+  box: {fileID: 134173784}
+  maxSpeed: 8
   linearDrag: 4
   gravity: 1
   fallMultiplier: 5
   onGround: 0
+  onTop: 0
   groundLength: 1.02
   colliderOffset: {x: 0.27, y: 0, z: 0}
 --- !u!50 &134173785

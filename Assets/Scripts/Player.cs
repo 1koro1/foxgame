@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -21,16 +22,22 @@ public class Player : MonoBehaviour
     public BoxCollider2D box;//盒装碰撞体
 
     //Physics
-    public float maxSpeed = 7f;
+    public float maxSpeed;
     public float linearDrag = 4f;//线性阻力
-    public float gravity = 1f;//重力
-    public float fallMultiplier = 5f;//下将乘数
+    public float gravity;//重力
+    public float fallMultiplier;//下将乘数
+    public float lowJumpMultiplier;//长按跳跃
 
     //Collision
     public bool onGround = false; //是否在地面上
     public bool onTop = false; //是否头顶有地板碰撞
     public float groundLength = 0.6f;//地板指针长度 
     public Vector3 colliderOffset;//画线的参数
+
+
+    //Audio
+    public AudioSource jump;
+    public AudioSource Hit;
 
 
     // Start is called before the first frame update
@@ -68,6 +75,16 @@ public class Player : MonoBehaviour
         modifyPhysics();
         
     }
+    //触碰函数
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.tag == "deathLine") {
+            //调用死亡重置场景
+            GetComponent<AudioSource>().enabled = false;
+            Invoke("Restart",1f);
+        }
+    }
+
     //碰撞函数
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -80,12 +97,16 @@ public class Player : MonoBehaviour
             {
                 enemy.jumpOn();
                 //触发2段跳
-                rb.velocity = new Vector2(rb.velocity.x, 0);
-                rb.AddForce(Vector2.up * jumpSpeed * 0.6f, ForceMode2D.Impulse); 
+                rb.velocity = new Vector2(rb.velocity.x, jumpSpeed * 0.8f);
+                //添加跳跃音效
+                jump.Play(); 
+                //rb.AddForce(Vector2.up * jumpSpeed * 0.6f, ForceMode2D.Impulse); 
             }
             else {
                 //不处于下落状态，则出发受伤动画
-                animator.SetTrigger("Hit"); 
+                animator.SetTrigger("Hit");
+                //播放受伤音频
+                Hit.Play();
             
             }
         }
@@ -104,21 +125,38 @@ public class Player : MonoBehaviour
     }
     //移动函数
     void moveCharacter(float horizontal) {
-        rb.AddForce(Vector2.right * horizontal * moveSpeed);//赋予移动方向的力
-
-        if ((horizontal > 0 && !facingRight) || (horizontal < 0 && facingRight)) {
+        if ((horizontal > 0 && !facingRight) || (horizontal < 0 && facingRight))
+        {
             Flip();
+        }
+
+        rb.AddForce(Vector2.right * horizontal * moveSpeed);//赋予移动方向的力
+        //赋予一个加速度
+        if (horizontal>0)
+        {
+            rb.AddForce(Vector2.right * moveSpeed, ForceMode2D.Impulse);
+        }
+        else if(horizontal<0){
+            rb.AddForce(Vector2.left * moveSpeed, ForceMode2D.Impulse);
+        }
+        
+        if (Mathf.Abs(rb.velocity.x) > maxSpeed) {
+            rb.velocity = new Vector2(Mathf.Sign(rb.velocity.x) * maxSpeed ,rb.velocity.y);
         }
         animator.SetFloat("Speed",Mathf.Abs(horizontal));
          
     }
     //跳跃函数
     void Jump() {
-        rb.velocity = new Vector2(rb.velocity.x,0);
-        rb.AddForce(Vector2.up * jumpSpeed,ForceMode2D.Impulse);
-        jumpTimer = 0;
-        //跳跃
-        animator.SetBool("isJump", true);
+        if (!animator.GetBool("crouch")) {
+            rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
+            //rb.AddForce(Vector2.up * jumpSpeed,ForceMode2D.Impulse);
+            jumpTimer = 0;
+            //跳跃
+            animator.SetBool("isJump", true);
+            //添加跳跃音效
+            jump.Play();
+        } 
     }
     //阻力函数
     void modifyPhysics() {
@@ -142,10 +180,12 @@ public class Player : MonoBehaviour
             rb.drag = linearDrag * 0.15f;
             if (rb.velocity.y < 0) {
                 //下降
-                rb.gravityScale = gravity * fallMultiplier;
+                rb.velocity += Vector2.up * Physics2D.gravity.y * (fallMultiplier - 1) * Time.deltaTime;
+                //rb.gravityScale = gravity * fallMultiplier;
                 animator.SetBool("isJump",false);
             } else if (rb.velocity.y > 0 && !Input.GetButton("Jump")) {
-                rb.gravityScale = gravity * (fallMultiplier / 2);
+                rb.velocity += Vector2.up * Physics2D.gravity.y * (lowJumpMultiplier - 1) * Time.deltaTime;
+                //rb.gravityScale = gravity * (fallMultiplier / 2);
                 
             }
         }
@@ -155,6 +195,11 @@ public class Player : MonoBehaviour
     void Flip() {
         facingRight = !facingRight;
         transform.rotation = Quaternion.Euler(0,facingRight ? 0:180,0);
+    }
+    //重置当前场景
+    void Restart() {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    
     }
 
     //内置画看不见的线的函数

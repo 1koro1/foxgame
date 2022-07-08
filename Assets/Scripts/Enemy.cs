@@ -21,5 +21,6 @@ public class Enemy : MonoBehaviour
     public void jumpOn()
     {
         animator.SetTrigger("death");
+        GetComponent<Collider2D>().enabled = false;
     }
 }

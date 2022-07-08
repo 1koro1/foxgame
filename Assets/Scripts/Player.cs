@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
     public Animator animator;
     public LayerMask groundLayer;//指向图层
     public BoxCollider2D box;//盒装碰撞体
+    public SpriteRenderer sr;
 
     //Physics
     public float maxSpeed;
@@ -194,7 +195,15 @@ public class Player : MonoBehaviour
     //转向函数
     void Flip() {
         facingRight = !facingRight;
-        transform.rotation = Quaternion.Euler(0,facingRight ? 0:180,0);
+        if (facingRight)
+        {
+            sr.flipX = false;
+        }
+        else {
+            sr.flipX = true;
+        } 
+        //transform.rotation = Quaternion.Euler(0,facingRight ? 0:180,0);
+        //transform.localScale = new Vector3(facingRight ? 1 : -1, 1,0);
     }
     //重置当前场景
     void Restart() {
